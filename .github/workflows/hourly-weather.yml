@@ -1,0 +1,34 @@
+name: Hourly weather log
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  log-temperature:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run weather_poc.py
+        run: python weather_poc.py
+
+      - name: Commit temperature_log.txt
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add temperature_log.txt
+          if git diff --cached --quiet; then
+            echo "No temperature_log.txt change to commit"
+          else
+            git commit -m "chore: append hourly temperature reading"
+            git push
+          fi
